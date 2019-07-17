@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>ajax封装</title>
+</head>
+
+<body>
+  ajax 异步请求数据封装实例
+</body>
+<script>
+  function ajax(options) {
+    let params = formsParams(options.data);
+
+    // 设置默认参数
+    let defaultObj = {
+      type: 'GET',
+      url: '',
+      data: {},
+      async: true
+    }
+
+    let options = Object.assign({}, defaultObj, options) // 用户设置覆盖默认设置
+
+    // 创建对象
+    let xhr = null;
+    if (window.XMLHttpRequest) {
+      xhr = new XMLHttpRequest(); // ie6以上获取请求对象
+    } else {
+      xhr = new ActiveXObject(); // ie6以下获取请求对象
+    }
+
+    // 连接
+    if (options.type === 'GET') { // GET请求
+      xhr.open(options.type, options.url + "?" + params, options.async);
+      xhr.send(null);
+    } else if (options.type === 'POST') { // POST请求
+      xhr.open(options.type, options.url, options.async);
+      xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded"); // 设置请求头
+      xhr.send(params); // 发送请求参数
+    }
+
+    // 请求成功回调
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState == 4 && xhr.status == 200) {
+        xhr.success(xhr.responseText);
+      } else {
+        xhr.error('数据请求失败！');
+      }
+    }
+  }
+
+  // 处理数据格式为 a="xx"&b="**"...
+  function formsParams(data) {
+    if (data) {
+      let arr = [];
+      for (let item in data) {
+        arr.push(item + '=' + data[item]);
+      }
+      return arr.join('&');
+    }
+  }
+
+  // 使用实例
+  ajax({
+    type: 'POST',
+    url: 'url',
+    async: true,
+    data: {
+      name: '',
+      age: ''
+    }
+  })
+</script>
+
+</html>

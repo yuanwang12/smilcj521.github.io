@@ -52,7 +52,7 @@ module.exports = {
         }
       })
     }else{
-      // 图片描述写入txt文件
+      // 图片描述写入json文件
       let str = JSON.stringify(data,"","\t")
       fs.writeFile('data.json', str, function(err){
       if (err) {console.log(`文件创建error...`)}

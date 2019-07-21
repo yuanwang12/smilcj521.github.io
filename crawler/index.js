@@ -34,37 +34,47 @@ const downLoadImages = async (list, index) => {
   }
   // 下载判断
   if (list[index]) {
-    let pageDomUrlWrapp = await model.getPage(list[index].url);//获取图片所在网页
-    if(pageDomUrlWrapp){
-      let imageNum = await model.getImagesNum(pageDomUrlWrapp.res);//获取详情页图片的数量
-      if(imageNum >= 0){
+    let pageDomUrlWrapp1 = await model.getPage(list[index].url);//获取图片所在网页
+    let pageDomUrlWrapp2 = await model.getPage(list[index + 1].url);//获取图片所在网页
 
+    if(pageDomUrlWrapp1){
+      let imageNum1 = await model.getImagesNum(pageDomUrlWrapp1.res);//获取详情页图片的数量
+      let imageNum2 = await model.getImagesNum(pageDomUrlWrapp2.res);//获取详情页图片的数量
+      if(imageNum1 >= 0 || imageNum2 >= 0){
         /**
          * 高并发处理
          */ 
-        let p1 = new Promise((resolve, reject)=>{
-          let isDownLoad = model.downloadImage(pageDomUrlWrapp, imageNum, list[index].name);// 下载图片
-          if(isDownLoad){
-            index++;
-            downLoadPicNum++;
-            resolve(''); 
-          }
-        });
-
-        let p2 = new Promise((resolve, reject)=>{
-          let isDownLoad = model.downloadImage(pageDomUrlWrapp, imageNum, list[index].name);// 下载图片
-          if(isDownLoad){
-            index++;
-            downLoadPicNum++; 
-            resolve(''); 
-          }
-        });
+        let p1, p2;
+        if(imageNum1){
+            p1 = new Promise((resolve, reject)=>{
+            let isDownLoad = model.downloadImage(pageDomUrlWrapp1, imageNum1, list[index].name);// 下载图片
+            if(isDownLoad){
+              index++;
+              downLoadPicNum++;
+              resolve(''); 
+            }
+          });
+        }
         
-        Promise.all([p1, p2])
-        .then(()=>{
-          downLoadImages(list, index);//循环完成下载下一组
-        });
-        
+        if(imageNum2){
+            p2 = new Promise((resolve, reject)=>{
+            let isDownLoad = model.downloadImage(pageDomUrlWrapp2, imageNum2, list[index].name);// 下载图片
+            if(isDownLoad){
+              index++;
+              downLoadPicNum++; 
+              resolve(''); 
+            }
+          });
+        }
+        if(imageNum1 && imageNum2){
+          Promise.all([p1, p2]).then(()=>{
+            downLoadImages(list, index);//循环完成下载下一组
+          });
+        }else{
+          Promise.all([p1]).then(()=>{
+            downLoadImages(list, index);//循环完成下载下一组
+          });
+        } 
       }else{
         console.log("已爬取此网站所有图片, 爬取结束>>>>>>>>>>>>>>>");
         return false;
